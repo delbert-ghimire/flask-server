@@ -1,9 +1,12 @@
 
 from collections import defaultdict
+from email import message
 from fileinput import filename
+from glob import glob
 
 from this import d
 from types import DynamicClassAttribute
+from warnings import catch_warnings
 from flask import Flask,request,jsonify,render_template, send_file
 from pyparsing import Word
 #from skimage import io
@@ -26,10 +29,14 @@ def upload():
         global filename 
         filename = werkzeug.utils.secure_filename(imagefile.filename)
         imagefile.save("./uploadedimages/"+filename) 
-        return jsonify({
-            "message":"Image Uploaded Successfully"
+        # global img 
+        img = ('./uploadedimages/'+str(filename)) 
+        # print(img)
+        print(img);
+        return jsonify({"imagepath":img,
+                        "message":"image uploaded successfully"
         })
-
+# "message":"Image Uploaded Successfully"
 
 @app.route('/app',methods = ['GET'])  
 def returnascii():
@@ -37,7 +44,7 @@ def returnascii():
     inputchar = str(request.args['query'])
     answer = str(ord(inputchar))
     d['output']=answer
-    # abc = "hwllo sldlfjew;o;h"
+    # abc = "hello motherfucker;o;h"
     return d
 
 @app.route('/test',methods = ['GET'])  
@@ -46,7 +53,7 @@ def returntest():
     # inputchar = str(request.args['testing'])
     # answer = str(ord(inputchar))
     # d['output']=answer
-    # abc = "hwllo sldlfjew;o;h"
+    # abc = "some shit sldlfjew;o;h"
     affectedpercentage1= "70 percent"
     mesg1 = "Mild Stage Cataract"
     return jsonify({'affectedpercenatge':affectedpercentage1,
@@ -144,16 +151,31 @@ def percentcalculate(img):
     else: 
         mesg = "SEVERE stage Cataract" #print("SEVERE stage Cataract")
     return affectedpercenatge,mesg
-        
-@app.route('/app1')
+
+@app.route('/catch')
+def cat():
+    try:
+        img = Image.open(r'./uploadedimages/'+str(filename)) 
+        print(img)
+    except:
+        print("catch failed! motheru=fshsoodkfs")
+    return img
+
+@app.route('/app1',methods =['POST'])
 def result():
+    if(request.method == 'POST'):
+        imagepath = request.form['imagepath']
+        print(imagepath)
+        # imagefile.open(r"./uploadedimages/"+filename)
+    # img,message = upload()---this cannot define which filename to use
+    # return jsonify({"textmesg":"success!!mf"})
     try: 
         global img 
-        img = Image.open(r'./uploadedimages/'+str(filename)) 
-    except IOError:
-        pass
-    # print(img)
-    print(img)
+        img = Image.open(imagepath) 
+        print (img)
+    except:
+        print("image not found")
+
     dst_IMG = preprocessing(img);
     r_min = 10
     r_max = 200
